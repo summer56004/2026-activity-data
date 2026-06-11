@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 活动年度看板</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:#f5f5f3;color:#1a1a18;min-height:100vh;padding:2rem}
+.container{max-width:960px;margin:0 auto}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem}
+.sec{font-size:12px;font-weight:500;color:#5f5e5a;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.metric-card{background:#f1efe8;border-radius:8px;padding:1rem;margin-bottom:1.25rem;display:inline-block;min-width:180px}
+.metric-label{font-size:12px;color:#5f5e5a;margin-bottom:6px}
+.metric-value{font-size:28px;font-weight:500;color:#1a1a18}
+.metric-sub{font-size:11px;color:#888780;margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#5f5e5a}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+.event-list-row{display:grid;grid-template-columns:150px 1fr auto;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,0.08)}
+.event-list-row:last-child{border-bottom:none}
+.status-badge{font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.status-ended{background:#EAF3DE;color:#3B6D11}
+.status-ongoing{background:#E0F0FB;color:#0B4F7A}
+.status-prep{background:#FAEEDA;color:#854F0B}
+.status-plan{background:#EEEDFE;color:#534AB7}
+.page-btn{font-size:11px;padding:4px 10px;border-radius:20px;border:0.5px solid rgba(0,0,0,0.15);cursor:pointer;color:#5f5e5a;background:none;white-space:nowrap;font-family:inherit}
+.page-btn:hover{background:#f1efe8}
+.page-btn.active{background:#f1efe8;color:#1a1a18;font-weight:500;border-color:rgba(0,0,0,0.25)}
+.detail-page{display:none}
+.detail-page.visible{display:block}
+.kpi-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.kpi-table th{font-weight:500;color:#5f5e5a;padding:6px 8px;border-bottom:0.5px solid rgba(0,0,0,0.08);text-align:left}
+.kpi-table td{padding:7px 8px;border-bottom:0.5px solid rgba(0,0,0,0.08);color:#1a1a18}
+.kpi-table tr:last-child td{border-bottom:none}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#f1efe8;color:#5f5e5a;margin:2px 3px 2px 0}
+.upload-zone{border:1.5px dashed rgba(0,0,0,0.2);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:background .15s}
+.upload-zone:hover,.upload-zone.drag{background:#f1efe8}
+.upload-zone.success{border-color:#1D9E75;background:#E1F5EE}
+.toast{font-size:12px;padding:6px 14px;border-radius:8px;margin-top:10px;display:none}
+.toast.ok{background:#E1F5EE;color:#085041;display:block}
+.toast.err{background:#FCEBEB;color:#791F1F;display:block}
+button{font-family:inherit;font-size:13px;padding:6px 14px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.2);cursor:pointer;background:none;color:#1a1a18;transition:background .15s}
+button:hover{background:#f1efe8}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}body{padding:1rem}.event-list-row{grid-template-columns:110px 1fr auto}}
+@media(prefers-color-scheme:dark){
+  body{background:#1a1a18;color:#e8e6df}
+  .card{background:#2c2c2a;border-color:rgba(255,255,255,0.08)}
+  .metric-card,.tag{background:#3a3a38}
+  .metric-value{color:#e8e6df}
+  .metric-label,.sec,.legend-item{color:#b4b2a9}
+  .metric-sub{color:#888780}
+  .page-btn{color:#b4b2a9;border-color:rgba(255,255,255,0.12)}
+  .page-btn.active,.page-btn:hover{background:#3a3a38;color:#e8e6df}
+  .kpi-table th{color:#b4b2a9;border-color:rgba(255,255,255,0.08)}
+  .kpi-table td{border-color:rgba(255,255,255,0.08);color:#e8e6df}
+  .event-list-row{border-color:rgba(255,255,255,0.08)}
+  .upload-zone{border-color:rgba(255,255,255,0.18)}
+  .upload-zone:hover,.upload-zone.drag,.upload-zone.success~*{background:#3a3a38}
+  .upload-zone.success{border-color:#1D9E75;background:#04342C}
+  button{color:#e8e6df;border-color:rgba(255,255,255,0.15)}
+  button:hover{background:#3a3a38}
+  .toast.ok{background:#04342C;color:#9FE1CB}
+  .toast.err{background:#3D1212;color:#F5C4B3}
+  .status-ended{background:#1a3310;color:#9FE1CB}
+  .status-ongoing{background:#0a2a40;color:#7DC8F0}
+  .status-prep{background:#3a2608;color:#FAC775}
+  .status-plan{background:#1e1a40;color:#CECBF6}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="card">
+  <div class="sec"><i class="ti ti-upload"></i> 上传活动数据</div>
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('csvInput').click()" ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
+    <i class="ti ti-file-text" style="font-size:32px;color:#888780"></i>
+    <div style="font-size:14px;font-weight:500;margin-top:10px" id="uploadTitle">点击或拖拽上传 CSV 文件</div>
+    <div style="font-size:12px;color:#888780;margin-top:4px">从腾讯文档导出的 .csv 文件（UTF-8 编码）</div>
+    <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleFile(this.files[0])">
+  </div>
+  <div id="uploadToast" class="toast"></div>
+  <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid rgba(0,0,0,0.08)">
+    <div style="font-size:11px;color:#888780;margin-bottom:8px">没有数据？先用示例数据预览效果</div>
+    <button onclick="loadSample()"><i class="ti ti-sparkles"></i> 加载示例数据</button>
+  </div>
+</div>
+
+<div id="dashMain" style="display:none">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:20px;font-weight:500">2026 活动年度看板</div>
+      <div style="font-size:13px;color:#888780;margin-top:3px" id="lastUpdated"></div>
+    </div>
+    <button onclick="document.getElementById('csvInput').click()"><i class="ti ti-refresh"></i> 更新数据</button>
+  </div>
+
+  <div class="metric-card">
+    <div class="metric-label"><i class="ti ti-calendar"></i> 全年活动总数</div>
+    <div class="metric-value" id="m-total">—</div>
+    <div class="metric-sub" id="m-total-sub"></div>
+  </div>
+
+  <div class="card">
+    <div class="sec"><i class="ti ti-calendar-month"></i> 活动日历 · 2026 全年</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#CECBF6;border:0.5px solid #AFA9EC"></span>线上活动</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#9FE1CB;border:0.5px solid #5DCAA5"></span>线下活动</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#FAC775;border:0.5px solid #EF9F27"></span>行业展会</span>
+    </div>
+    <div style="overflow-x:auto"><div id="gantt" style="min-width:580px"></div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card" style="margin-bottom:0">
+      <div class="sec"><i class="ti ti-list-details"></i> 活动计划列表</div>
+      <div id="eventListEl"></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="sec"><i class="ti ti-package"></i> 产品维度活动数</div>
+      <div id="prodGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="sec" style="margin-bottom:0"><i class="ti ti-table"></i> 活动详情 · 分页查看</div>
+      <span style="font-size:11px;color:#888780">点击活动名称切换</span>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="pageNav"></div>
+    <div id="detailPages"></div>
+  </div>
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+const TYPE_LABEL={online:'线上活动',offline:'线下活动',expo:'行业展会'};
+const TYPE_BG={online:'#CECBF6',offline:'#9FE1CB',expo:'#FAC775'};
+const TYPE_TEXT={online:'#3C3489',offline:'#085041',expo:'#633806'};
+// 四种状态
+const STATUS_CLASS={ended:'status-ended',ongoing:'status-ongoing',prep:'status-prep',plan:'status-plan'};
+const STATUS_LABEL={ended:'活动已结束',ongoing:'活动进行中',prep:'筹备中',plan:'计划中'};
+const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+function onDrag(e,enter){e.preventDefault();document.getElementById('uploadZone').classList.toggle('drag',enter)}
+function onDrop(e){e.preventDefault();onDrag(e,false);const f=e.dataTransfer.files[0];if(f)handleFile(f)}
+function showToast(msg,type){const t=document.getElementById('uploadToast');t.textContent=msg;t.className='toast '+type}
+function n(v){const x=parseFloat(v);return isNaN(x)?0:x}
+function s(v){return(v===undefined||v===null||String(v).trim()==='')?null:String(v).trim()}
+function parseProducts(str){if(!str)return[];return String(str).split(/[,，、\/|]+/).map(p=>p.trim()).filter(Boolean)}
+
+function handleFile(file){
+  if(!file||!file.name.endsWith('.csv')){showToast('请上传 .csv 格式的文件','err');return}
+  Papa.parse(file,{header:true,skipEmptyLines:true,complete:r=>{
+    if(!r.data||r.data.length===0){showToast('文件为空或格式不正确，请检查列标题','err');return}
+    document.getElementById('uploadZone').classList.add('success');
+    document.getElementById('uploadTitle').textContent=file.name;
+    showToast('数据加载成功，共 '+r.data.length+' 条活动记录','ok');
+    renderDash(r.data);
+  },error:()=>showToast('解析失败，请确认文件编码为 UTF-8','err')});
+}
+
+function renderDash(rows){
+  const EVENTS=rows.map((r,i)=>({
+    id:i,
+    name:s(r.name)||'活动'+(i+1),
+    startMonth:n(r.start_month)||1,
+    endMonth:Math.max(n(r.end_month)||n(r.start_month)||1, n(r.start_month)||1),
+    startDay:s(r.start_day)||'',
+    endDay:s(r.end_day)||'',
+    type:s(r.type)||'offline',
+    status:s(r.status)||'plan',
+    products:parseProducts(s(r.products)),
+    goal:s(r.goal)||'',
+    kpis:[1,2,3,4,5,6].map(k=>({
+      metric:s(r['kpi'+k+'_metric'])||'',
+      target:s(r['kpi'+k+'_target'])||'—',
+      actual:s(r['kpi'+k+'_actual'])||'—'
+    })).filter(k=>k.metric),
+  }));
+
+  document.getElementById('dashMain').style.display='block';
+  const now=new Date();
+  document.getElementById('lastUpdated').textContent='上次更新：'+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  const ended=EVENTS.filter(e=>e.status==='ended').length;
+  const ongoing=EVENTS.filter(e=>e.status==='ongoing').length;
+  const prep=EVENTS.filter(e=>e.status==='prep').length;
+  const plan=EVENTS.filter(e=>e.status==='plan').length;
+  document.getElementById('m-total').textContent=EVENTS.length;
+  document.getElementById('m-total-sub').textContent='已结束 '+ended+' · 进行中 '+ongoing+' · 筹备中 '+prep+' · 计划中 '+plan;
+
+  document.getElementById('gantt').innerHTML='';
+  document.getElementById('eventListEl').innerHTML='';
+  document.getElementById('prodGrid').innerHTML='';
+  document.getElementById('pageNav').innerHTML='';
+  document.getElementById('detailPages').innerHTML='';
+
+  buildGantt(EVENTS);
+  buildEventList(EVENTS);
+  buildProdGrid(EVENTS);
+  buildDetailPages(EVENTS);
+}
+
+function assignLanes(events){
+  const lanes=[];
+  events.forEach(e=>{
+    let placed=false;
+    for(let l=0;l<lanes.length;l++){
+      const conflict=lanes[l].some(ev=>ev.startMonth<=e.endMonth&&ev.endMonth>=e.startMonth);
+      if(!conflict){lanes[l].push(e);e._lane=l;placed=true;break;}
+    }
+    if(!placed){e._lane=lanes.length;lanes.push([e]);}
+  });
+  return lanes.length;
+}
+
+function buildGantt(EVENTS){
+  const numLanes=assignLanes(EVENTS);
+  const wrap=document.getElementById('gantt');
+  const ROW_H=28,ROW_GAP=5,HEAD_H=24,PAD=6;
+  const totalH=HEAD_H+numLanes*(ROW_H+ROW_GAP)+PAD;
+  const totalW=Math.max(wrap.parentElement.clientWidth||600,580);
+  const COL_W=totalW/12;
+  const isDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const gridColor=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.07)';
+  const labelColor='#888780';
+  const fontFamily="-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','100%');svg.setAttribute('viewBox',`0 0 ${totalW} ${totalH}`);
+  svg.setAttribute('height',totalH);svg.style.display='block';
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');svg.appendChild(defs);
+
+  MONTHS.forEach((m,i)=>{
+    const x=i*COL_W+COL_W/2;
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',x);t.setAttribute('y',16);t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','11');t.setAttribute('fill',labelColor);t.setAttribute('font-family',fontFamily);
+    t.textContent=m;svg.appendChild(t);
+    if(i>0){
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',i*COL_W);line.setAttribute('y1',HEAD_H);
+      line.setAttribute('x2',i*COL_W);line.setAttribute('y2',totalH);
+      line.setAttribute('stroke',gridColor);line.setAttribute('stroke-width','0.5');
+      svg.appendChild(line);
+    }
+  });
+
+  EVENTS.forEach(e=>{
+    const sm=Math.max(1,Math.min(12,e.startMonth));
+    const em=Math.max(sm,Math.min(12,e.endMonth));
+    const y=HEAD_H+e._lane*(ROW_H+ROW_GAP)+ROW_GAP/2;
+    const x1=(sm-1)*COL_W+2,x2=em*COL_W-2;
+    const w=Math.max(x2-x1,16);
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',x1);rect.setAttribute('y',y);rect.setAttribute('width',w);
+    rect.setAttribute('height',ROW_H);rect.setAttribute('rx',5);
+    rect.setAttribute('fill',TYPE_BG[e.type]||'#CECBF6');
+    rect.style.cursor='pointer';rect.onclick=()=>switchPage(e.id);svg.appendChild(rect);
+    const clipId='clip-'+e.id;
+    const cp=document.createElementNS('http://www.w3.org/2000/svg','clipPath');cp.setAttribute('id',clipId);
+    const cr=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    cr.setAttribute('x',x1+2);cr.setAttribute('y',y);cr.setAttribute('width',Math.max(w-14,2));cr.setAttribute('height',ROW_H);
+    cp.appendChild(cr);defs.appendChild(cp);
+    const maxChars=Math.floor((w-14)/6.5);
+    const label=e.name.length>maxChars&&maxChars>1?e.name.slice(0,maxChars)+'…':e.name;
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',x1+8);t.setAttribute('y',y+ROW_H/2+4);t.setAttribute('font-size','11');
+    t.setAttribute('font-family',fontFamily);t.setAttribute('fill',TYPE_TEXT[e.type]||'#3C3489');
+    t.setAttribute('clip-path',`url(#${clipId})`);t.style.pointerEvents='none';t.textContent=label;
+    svg.appendChild(t);
+  });
+  wrap.appendChild(svg);
+}
+
+function buildEventList(EVENTS){
+  const el=document.getElementById('eventListEl');
+  EVENTS.forEach(e=>{
+    const row=document.createElement('div');row.className='event-list-row';
+    const dateStr=(e.startDay&&e.endDay&&e.startDay!==e.endDay)?e.startDay+'~'+e.endDay:(e.startDay||'');
+    const sc=STATUS_CLASS[e.status]||'status-plan';
+    const sl=STATUS_LABEL[e.status]||e.status;
+    row.innerHTML='<div style="font-size:11px;color:#888780">'+dateStr+'</div>'
+      +'<div><div style="font-size:13px;font-weight:500;cursor:pointer" onclick="switchPage('+e.id+')">'+e.name+'</div>'
+      +'<div style="font-size:11px;color:#888780">'+(TYPE_LABEL[e.type]||e.type)+'</div></div>'
+      +'<span class="status-badge '+sc+'">'+sl+'</span>';
+    el.appendChild(row);
+  });
+}
+
+function buildProdGrid(EVENTS){
+  const prodMap={};
+  EVENTS.forEach(e=>e.products.forEach(p=>{if(p)prodMap[p]=(prodMap[p]||0)+1}));
+  const grid=document.getElementById('prodGrid');
+  if(!Object.keys(prodMap).length){grid.innerHTML='<div style="font-size:12px;color:#888780">暂无产品数据</div>';return;}
+  Object.entries(prodMap).sort((a,b)=>b[1]-a[1]).forEach(([name,count])=>{
+    grid.innerHTML+='<div style="background:#f1efe8;border-radius:8px;padding:.75rem 1rem;text-align:center">'
+      +'<div style="font-size:11px;color:#5f5e5a;margin-bottom:4px">'+name+'</div>'
+      +'<div style="font-size:22px;font-weight:500;color:#1a1a18">'+count+'</div>'
+      +'<div style="font-size:11px;color:#888780;margin-top:2px">场活动</div></div>';
+  });
+}
+
+function buildDetailPages(EVENTS){
+  const nav=document.getElementById('pageNav'),pages=document.getElementById('detailPages');
+  EVENTS.forEach((e,i)=>{
+    const btn=document.createElement('button');
+    btn.className='page-btn'+(i===0?' active':'');
+    btn.textContent=e.name.slice(0,6);btn.onclick=()=>switchPage(i);nav.appendChild(btn);
+    const page=document.createElement('div');
+    page.className='detail-page'+(i===0?' visible':'');page.id='page-'+i;
+    const prodTags=e.products.length?e.products.map(p=>'<span class="tag">'+p+'</span>').join(''):'<span style="font-size:12px;color:#888780">—</span>';
+    const dateStr=(e.startDay&&e.endDay&&e.startDay!==e.endDay)?e.startDay+' ~ '+e.endDay:(e.startDay||'');
+    const kpiRows=e.kpis.map(k=>'<tr><td>'+k.metric+'</td><td style="color:#5f5e5a">'+k.target+'</td><td style="font-weight:500">'+k.actual+'</td></tr>').join('');
+    const sc=STATUS_CLASS[e.status]||'status-plan';
+    const sl=STATUS_LABEL[e.status]||e.status;
+    page.innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'
+      +'<div><div style="font-size:15px;font-weight:500">'+e.name+'</div>'
+      +'<div style="font-size:12px;color:#888780;margin-top:2px">'+dateStr+(dateStr?' · ':'')+(TYPE_LABEL[e.type]||e.type)+'</div></div>'
+      +'<span class="status-badge '+sc+'">'+sl+'</span></div>'
+      +(e.goal?'<div style="font-size:12px;color:#5f5e5a;background:#f1efe8;border-radius:8px;padding:8px 12px;margin-bottom:12px"><i class="ti ti-target"></i> 活动目标：'+e.goal+'</div>':'')
+      +'<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:500;color:#888780;letter-spacing:.05em;margin-bottom:6px;text-transform:uppercase">涉及产品</div>'+prodTags+'</div>'
+      +(kpiRows?'<div style="font-size:11px;font-weight:500;color:#888780;letter-spacing:.05em;margin-bottom:4px;text-transform:uppercase">核心指标</div>'
+        +'<table class="kpi-table"><thead><tr><th>指标</th><th>目标</th><th>实际达成</th></tr></thead><tbody>'+kpiRows+'</tbody></table>':'');
+    pages.appendChild(page);
+  });
+}
+
+function switchPage(idx){
+  document.querySelectorAll('.detail-page').forEach((p,i)=>p.classList.toggle('visible',i===idx));
+  document.querySelectorAll('#pageNav .page-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.getElementById('detailPages').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function loadSample(){
+  const sample=[
+    {name:'数字化转型峰会',start_month:3,end_month:3,start_day:'3月12日',end_day:'3月13日',type:'offline',status:'ended',products:'ERP产品,CRM产品',goal:'扩大品牌影响力，获取高意向企业线索',kpi1_metric:'注册人数',kpi1_target:'300',kpi1_actual:'320',kpi2_metric:'实到人数',kpi2_target:'280',kpi2_actual:'265',kpi3_metric:'获取线索',kpi3_target:'40',kpi3_actual:'52',kpi4_metric:'客户满意度',kpi4_target:'4.5分',kpi4_actual:'4.7分'},
+    {name:'SaaS产品Webinar',start_month:3,end_month:4,start_day:'3月28日',end_day:'4月2日',type:'online',status:'ended',products:'SaaS平台',goal:'触达中小企业决策人，演示产品核心功能',kpi1_metric:'注册人数',kpi1_target:'200',kpi1_actual:'218',kpi2_metric:'在线参与',kpi2_target:'150',kpi2_actual:'172',kpi3_metric:'平均观看时长',kpi3_target:'40分钟',kpi3_actual:'36分钟',kpi4_metric:'演示预约',kpi4_target:'30',kpi4_actual:'28'},
+    {name:'CFO线上沙龙',start_month:5,end_month:5,start_day:'5月10日',end_day:'5月10日',type:'online',status:'ended',products:'财务云产品',goal:'触达财务决策人，传递财务数字化价值主张',kpi1_metric:'在线参与',kpi1_target:'150',kpi1_actual:'160',kpi2_metric:'平均观看时长',kpi2_target:'45分钟',kpi2_actual:'38分钟',kpi3_metric:'后续跟进意向',kpi3_target:'20',kpi3_actual:'28',kpi4_metric:'NPS',kpi4_target:'50',kpi4_actual:'62'},
+    {name:'智能制造行业展',start_month:6,end_month:7,start_day:'6月25日',end_day:'7月5日',type:'expo',status:'ongoing',products:'制造云,IoT平台',goal:'切入制造业赛道，展示解决方案，收集意向名单',kpi1_metric:'展位触达',kpi1_target:'300人次',kpi1_actual:'—',kpi2_metric:'名片收集',kpi2_target:'150',kpi2_actual:'—',kpi3_metric:'现场演示',kpi3_target:'20场',kpi3_actual:'—',kpi4_metric:'A类线索',kpi4_target:'50',kpi4_actual:'—'},
+    {name:'HR科技沙龙·北京',start_month:6,end_month:6,start_day:'6月18日',end_day:'6月18日',type:'offline',status:'ongoing',products:'HR SaaS',goal:'深度触达HR高管，推进决策链关系建立',kpi1_metric:'参与人数',kpi1_target:'60',kpi1_actual:'—',kpi2_metric:'目标线索',kpi2_target:'20',kpi2_actual:'—',kpi3_metric:'NPS',kpi3_target:'≥50',kpi3_actual:'—',kpi4_metric:'现场签约意向',kpi4_target:'5',kpi4_actual:'—'},
+    {name:'产品路线图直播',start_month:8,end_month:8,start_day:'8月6日',end_day:'8月6日',type:'online',status:'prep',products:'SaaS平台,ERP产品',goal:'向存量客户同步产品规划，提升续费意愿',kpi1_metric:'注册人数',kpi1_target:'300',kpi1_actual:'—',kpi2_metric:'在线参与',kpi2_target:'200',kpi2_actual:'—',kpi3_metric:'续费意向表达',kpi3_target:'60%',kpi3_actual:'—',kpi4_metric:'问题提交数',kpi4_target:'50',kpi4_actual:'—'},
+    {name:'Q3客户答谢沙龙',start_month:9,end_month:9,start_day:'9月11日',end_day:'9月11日',type:'offline',status:'plan',products:'ERP产品,财务云产品',goal:'维系核心客户关系，推进续费与增购',kpi1_metric:'邀约客户',kpi1_target:'40',kpi1_actual:'—',kpi2_metric:'续费意向率',kpi2_target:'80%',kpi2_actual:'—',kpi3_metric:'增购机会',kpi3_target:'10个',kpi3_actual:'—',kpi4_metric:'满意度评分',kpi4_target:'≥4.5',kpi4_actual:'—'},
+    {name:'年度客户大会',start_month:11,end_month:12,start_day:'11月20日',end_day:'12月1日',type:'offline',status:'plan',products:'SaaS平台,ERP产品,CRM产品,HR SaaS',goal:'全年收官，展示产品路线图，巩固战略客户关系',kpi1_metric:'参与人数',kpi1_target:'800',kpi1_actual:'—',kpi2_metric:'媒体报道',kpi2_target:'20篇+',kpi2_actual:'—',kpi3_metric:'战略客户续签率',kpi3_target:'≥90%',kpi3_actual:'—',kpi4_metric:'新签商机',kpi4_target:'30个',kpi4_actual:'—'},
+  ];
+  document.getElementById('uploadZone').classList.add('success');
+  document.getElementById('uploadTitle').textContent='示例数据（8场活动）';
+  showToast('示例数据加载成功，共 8 条活动记录','ok');
+  renderDash(sample);
+}
+</script>
+</body>
+</html>
